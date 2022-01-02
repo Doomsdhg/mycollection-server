@@ -18,35 +18,22 @@ router.post(
             
             const errors = validationResult(request);
             if (!errors.isEmpty()) {
-
-                const res = response.status(400).json({
+                return response.status(400).json({
                     errors: errors.array(),
                     message: 'Error! Invalid data'
                 });
-                console.log(res);
-                return res
             }
-            console.log(request.body);
             const {email, password} = request.body;
-            console.log(password);
             const candidate = await User.findOne({ email: email});
-            console.log('findone is ok ' + candidate);
             if (candidate) {
                 return response.status(400).json({message: 'This email is already registered'})
             }
-            console.log('candidate is ok');
-            console.log(password);
             const hashedPass = await bcrypt.hash(password, 10);
-            console.log('hashedpass is ok' + hashedPass);
             const user = new User({ email, password: hashedPass});
-            console.log(user);
             await user.save();
-            
-            console.log(hashedPass);
             response.status(201).json({message: 'Account is created successfully'});
 
         } catch(e){
-            console.log(e);
             response.status(500).json({message: `Error: ${e}`})
         }
     })
