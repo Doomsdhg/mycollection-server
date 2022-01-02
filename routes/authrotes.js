@@ -18,9 +18,9 @@ router.post(
             
             const errors = validationResult(request);
             if (!errors.isEmpty()) {
+                const arr = (errors.array().map((e)=>{return e.msg}));
                 return response.status(400).json({
-                    errors: errors.array(),
-                    message: 'Error! Invalid data'
+                    message: arr.join(';')
                 });
             }
             const {email, password} = request.body;
@@ -39,27 +39,30 @@ router.post(
     })
 
 router.post(
-    '/authetication', 
+    '/authentication', 
     [
         check('email', 'Email is invalid').normalizeEmail().isEmail(),
-        check('pass', 'Enter password').exists()
+        check('password', 'Enter password').exists()
     ],
     async (request, response) => {
         try {
             const errors = validationResult(request);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
-                    errors: errors.array(),
-                    message: 'Error! Invalid data'
-                })
+                const arr = (errors.array().map((e)=>{return e.msg}));
+                return response.status(400).json({
+                    message: arr.join(';')
+                });
             }
-            const {email, pass} = request.body;
-            const user = User.findOne({ email});
+            const {email, password} = request.body;
+            const user = await User.findOne({email});
+            console.log(user);
             if (!user) {
-                return res.status(400).json({message: 'Couldnt find user with such credentials'})
+                console.log('doesnt exist');
+                return response.status(400).json({message: 'Couldnt find user with such email'})
             }
-            const isMatch = await bcrypt.compare(pass, user.pass);
+            const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
+                console.log('pass');
                 return response.status(400).json({ message: 'password is incorrect'})
             }
             const token = jwt.sign(
@@ -69,6 +72,7 @@ router.post(
             )
             response.json({token, userId: user.id})
         } catch(e){
+            console.log(e);
             response.status(500).json({message: `Error: ${e}`})
         }
 })
