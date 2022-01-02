@@ -6,34 +6,50 @@ const {check, validationResult} = require('express-validator');
 const jwt = require('jsonwebtoken');
 const config = require('config');
 
+
 router.post(
     '/register', 
     [
         check('email', 'email is invalid').isEmail()
     ],
     async (request, response) => {
-    try {
-        const errors = validationResult(request);
-        if (!errors.isEmpty()) {
-            return response.status(400).json({
-                errors: errors.array(),
-                message: 'Error! Invalid data'
-            })
-        }
-        const {email, pass} = request.body;
-        const candidate = await User.findOne({ email});
-        if (candidate) {
-            response.status(400).json({message: 'This email is already registered'})
-        }
-        const hashedPass = await bcrypt.hash(pass, 1337);
-        const user = new User({ email, pass: hashedPass});
-        await user.save();
-        res.status(201).json({message: 'Account is created successfully'});
 
-    } catch(e){
-        response.status(500).json({message: `Error: ${e}`})
-    }
-})
+        try {
+            
+            const errors = validationResult(request);
+            if (!errors.isEmpty()) {
+
+                const res = response.status(400).json({
+                    errors: errors.array(),
+                    message: 'Error! Invalid data'
+                });
+                console.log(res);
+                return res
+            }
+            console.log(request.body);
+            const {email, password} = request.body;
+            console.log(password);
+            const candidate = await User.findOne({ email: email});
+            console.log('findone is ok ' + candidate);
+            if (candidate) {
+                return response.status(400).json({message: 'This email is already registered'})
+            }
+            console.log('candidate is ok');
+            console.log(password);
+            const hashedPass = await bcrypt.hash(password, 10);
+            console.log('hashedpass is ok' + hashedPass);
+            const user = new User({ email, password: hashedPass});
+            console.log(user);
+            await user.save();
+            
+            console.log(hashedPass);
+            response.status(201).json({message: 'Account is created successfully'});
+
+        } catch(e){
+            console.log(e);
+            response.status(500).json({message: `Error: ${e}`})
+        }
+    })
 
 router.post(
     '/authetication', 

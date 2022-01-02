@@ -4,7 +4,9 @@ const mongoose = require('mongoose');
 const app = express();
 const port = process.env.PORT || 8080;
 const mongo = config.get('mongo');
+const cors = require('cors');
 
+app.use(cors());
 app.use(express.json({extended: true}));
 app.use('/api/auth', require('./routes/authrotes'));
 
