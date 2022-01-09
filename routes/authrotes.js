@@ -85,7 +85,7 @@ router.post(
         try {
             const fileString = req.body.data;
             const uploadedResponse = await cloudinary.uploader.upload(fileStr, {
-                uploadPreset: 'dev_setups'
+                uploadPreset: 'g13naiuy'
             })
             console.log(uploadedResponse);
             response.json({msg: "success"})
@@ -98,7 +98,7 @@ router.post(
 )
 
 router.get(
-    '/api/images',
+    '/images',
     async (request, response) => {
         const {resources} = cloudinary.search.expression('folder:dev_setups')
         .sort_by('public_id', 'desc')
