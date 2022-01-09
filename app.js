@@ -7,7 +7,8 @@ const mongo = config.get('mongo');
 const cors = require('cors');
 
 app.use(cors());
-app.use(express.json({extended: true}));
+app.use(express.json({limit: '50mb', extended: true}));
+app.use(express.urlencoded( {limit: '50mb', extended: true}))
 app.use('/api/auth', require('./routes/authrotes'));
 
 async function run () {

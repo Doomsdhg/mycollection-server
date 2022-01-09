@@ -1,5 +1,8 @@
 {
     "port": 5000,
     "mongo": "mongodb+srv://doomsdhg:qwert123@cluster0.9wjdz.mongodb.net/app?retryWrites=true&w=majority",
-    "jwtSecret": "secret code"
+    "jwtSecret": "secret code",
+    "cloudinaryApiKey": "294124615259299",
+    "cloudinarySecret": "OMg4aHkoXUoLw2H7X3n0rfzzYw4",
+    "cloudinaryName": "mycollection-api"
 }

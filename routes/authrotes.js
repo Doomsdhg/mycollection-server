@@ -5,7 +5,9 @@ const User = require('../models/User');
 const {check, validationResult} = require('express-validator');
 const jwt = require('jsonwebtoken');
 const config = require('config');
-
+const cloudinaryName = config.get('cloudinaryName');
+const cloudinaryApiKey = config.get('cloudinaryApiKey');
+const cloudinarySecret = config.get('cloudinarySecret');
 
 router.post(
     '/register', 
@@ -75,6 +77,36 @@ router.post(
             console.log(e);
             response.status(500).json({message: `Error: ${e}`})
         }
-})
+    })
+
+router.post(
+    '/uploadimage',
+    async (request, response) => {
+        try {
+            const fileString = req.body.data;
+            const uploadedResponse = await cloudinary.uploader.upload(fileStr, {
+                uploadPreset: 'dev_setups'
+            })
+            console.log(uploadedResponse);
+            response.json({msg: "success"})
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({msg: "something went wrong"})
+        }
+        
+    }
+)
+
+router.get(
+    '/api/images',
+    async (request, response) => {
+        const {resources} = cloudinary.search.expression('folder:dev_setups')
+        .sort_by('public_id', 'desc')
+        .max_results(30)
+        .execute();
+        const publicIds = resources.map( file => file.public_id);
+        response.send(publicIds);
+    }
+)
 
 module.exports = router
