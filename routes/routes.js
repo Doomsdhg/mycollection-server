@@ -8,6 +8,12 @@ const config = require('config');
 const cloudinaryName = config.get('cloudinaryName');
 const cloudinaryApiKey = config.get('cloudinaryApiKey');
 const cloudinarySecret = config.get('cloudinarySecret');
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+    cloud_name: cloudinaryName,
+    api_key: cloudinaryApiKey,
+    api_secret: cloudinarySecret,
+})
 
 router.post(
     '/register', 
@@ -83,15 +89,15 @@ router.post(
     '/uploadimage',
     async (request, response) => {
         try {
-            const fileString = req.body.data;
-            const uploadedResponse = await cloudinary.uploader.upload(fileStr, {
-                uploadPreset: 'g13naiuy'
+            const fileString = request.body.data;
+            const uploadedResponse = await cloudinary.uploader.upload(fileString, {
+                uploadPreset: 'dev_setups'
             })
             console.log(uploadedResponse);
-            response.json({msg: "success"})
+            response.json({msg: "success", url: uploadedResponse.url})
         } catch (error) {
             console.log(error);
-            res.status(500).json({msg: "something went wrong"})
+            response.status(500).json({msg: "something went wrong"})
         }
         
     }
@@ -104,7 +110,7 @@ router.get(
         .sort_by('public_id', 'desc')
         .max_results(30)
         .execute();
-        const publicIds = resources.map( file => file.public_id);
+        const publicIds = resources.map(file => file.public_id);
         response.send(publicIds);
     }
 )
