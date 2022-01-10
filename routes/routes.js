@@ -2,6 +2,7 @@ const { Router } = require('express');
 const router = Router();
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const Collection = require('../models/Collection');
 const {check, validationResult} = require('express-validator');
 const jwt = require('jsonwebtoken');
 const config = require('config');
@@ -103,15 +104,44 @@ router.post(
     }
 )
 
-router.get(
-    '/images',
+router.post(
+    '/uploadcollection',
     async (request, response) => {
-        const {resources} = cloudinary.search.expression('folder:dev_setups')
-        .sort_by('public_id', 'desc')
-        .max_results(30)
-        .execute();
-        const publicIds = resources.map(file => file.public_id);
-        response.send(publicIds);
+        try {
+            const {
+                name,
+                description,
+                topic,
+                imageURL,
+                numberField1,
+                numberField2,
+                numberField3,
+                stringField1,
+                stringField2,
+                stringField3,
+                textField1,
+                textField2,
+                textField3,
+                dateField1,
+                dateField2,
+                dateField3,
+                checkboxField1,
+                checkboxField2,
+                checkboxField3
+            } = request.body.data;
+            console.log(name);
+            console.log(request.body);
+            const collection = new Collection({ name, description, topic, imageURL, numberField1, numberField2, 
+                numberField3, stringField1, stringField2, stringField3, textField1, textField2, textField3, 
+                dateField1, dateField2, dateField3, checkboxField1, checkboxField2, checkboxField3});
+            console.log(collection);
+            await collection.save();
+            response.status(201).json({message: 'Collection is created successfully'});
+        } catch (error) {
+            response.status(500).json({message: `Something went wrong! Try again + ${error}`})
+            console.log(error);
+        }
+        
     }
 )
 
