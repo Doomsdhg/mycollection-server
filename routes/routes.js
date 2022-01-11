@@ -79,7 +79,7 @@ router.post(
                 config.get('jwtSecret'),
                 {expiresIn: '1h'}
             )
-            response.json({token, userId: user.id})
+            response.json({token, userId: user.id, email: user.email})
         } catch(e){
             console.log(e);
             response.status(500).json({message: `Error: ${e}`})
@@ -109,6 +109,7 @@ router.post(
     async (request, response) => {
         try {
             const {
+                creator,
                 name,
                 description,
                 topic,
@@ -131,7 +132,7 @@ router.post(
             } = request.body.data;
             console.log(name);
             console.log(request.body);
-            const collection = new Collection({ name, description, topic, imageURL, numberField1, numberField2, 
+            const collection = new Collection({ creator, name, description, topic, imageURL, numberField1, numberField2, 
                 numberField3, stringField1, stringField2, stringField3, textField1, textField2, textField3, 
                 dateField1, dateField2, dateField3, checkboxField1, checkboxField2, checkboxField3});
             console.log(collection);
@@ -139,6 +140,22 @@ router.post(
             response.status(201).json({message: 'Collection is created successfully'});
         } catch (error) {
             response.status(500).json({message: `Something went wrong! Try again + ${error}`})
+            console.log(error);
+        }
+        
+    }
+)
+
+
+router.post(
+    '/fetchcollections',
+    async (request, response) => {
+        try {
+            const email = request.body.email;
+            const userCollections = await Collection.find({email});
+            console.log(userCollections);
+            response.status(201).json(userCollections);
+        } catch (error) {
             console.log(error);
         }
         
