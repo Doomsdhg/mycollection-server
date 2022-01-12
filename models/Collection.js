@@ -1,7 +1,6 @@
 const {Schema, model, Types} = require('mongoose');
 
 const schema = new Schema({
-    creator: {type: String, required: true},
     name: {type: String, required: true},
     description: {type: String, required: true},
     topic: {type: String, required: true},
@@ -21,6 +20,7 @@ const schema = new Schema({
     checkboxField1: {type: String},
     checkboxField2: {type: String},
     checkboxField3: {type: String},
+    creator: {type: Types.ObjectId, ref: 'User'},
 })
 
 module.exports = model('Collection', schema);

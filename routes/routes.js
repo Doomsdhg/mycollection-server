@@ -151,9 +151,8 @@ router.post(
     '/fetchcollections',
     async (request, response) => {
         try {
-            const email = request.body.email;
-            const userCollections = await Collection.find({email});
-            console.log(userCollections);
+            const userId = request.body.data.userId;
+            const userCollections = await Collection.find({creator: userId});
             response.status(201).json(userCollections);
         } catch (error) {
             console.log(error);
