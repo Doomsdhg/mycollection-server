@@ -161,4 +161,32 @@ router.post(
     }
 )
 
+router.post(
+    '/getcollection',
+    async (request, response) => {
+        try {
+            
+            const collectionId = request.body.data.collectionId;
+            const collection = await Collection.findOne({_id: collectionId});
+            let collectionHeaders = ['id', 'name', 'tags'];
+            for (let key in collection) {
+                if (key.includes('Field') && collection[key]){
+                    collectionHeaders.push(collection[key])
+                }
+            }
+            const arr = collectionHeaders.map((header)=>{
+                return {
+                    Header: header,
+                    accessor: header,
+                }
+            })
+            console.log(arr);
+            response.status(201).json(arr);
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
 module.exports = router
