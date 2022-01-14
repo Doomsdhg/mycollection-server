@@ -2,6 +2,7 @@ const { Router } = require('express');
 const router = Router();
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const Item = require('../models/Item');
 const Collection = require('../models/Collection');
 const {check, validationResult} = require('express-validator');
 const jwt = require('jsonwebtoken');
@@ -146,6 +147,64 @@ router.post(
     }
 )
 
+router.post(
+    '/uploaditem',
+    async (request, response) => {
+        try {
+            const {
+                name,
+                tags,
+                numberField1,
+                numberField2,
+                numberField3,
+                stringField1,
+                stringField2,
+                stringField3,
+                textField1,
+                textField2,
+                textField3,
+                StringField1,
+                StringField2,
+                StringField3,
+                checkboxField1,
+                checkboxField2,
+                checkboxField3,
+                collectionRef,
+            } = request.body.data;
+            const item = new Item({ 
+                name,
+                tags,
+                numberField1,
+                numberField2,
+                numberField3,
+                stringField1,
+                stringField2,
+                stringField3,
+                textField1,
+                textField2,
+                textField3,
+                StringField1,
+                StringField2,
+                StringField3,
+                checkboxField1,
+                checkboxField2,
+                checkboxField3,
+                collectionRef,});
+            await item.save();
+            const abc = await Collection.findOne({_id: collectionRef});
+            console.log(request.body);
+            const updateData = {
+                items: [...abc.items, item._id]
+            }
+            const collection = await Collection.findOneAndUpdate({_id: collectionRef}, updateData);
+            const bcd = await Collection.findOne({_id: collectionRef});
+            response.status(201).json({message: 'Item is added successfully'});
+        } catch (error) {
+            response.status(500).json({message: `Something went wrong! Try again + ${error}`})
+        }
+        
+    }
+)
 
 router.post(
     '/fetchcollections',
@@ -167,21 +226,44 @@ router.post(
         try {
             
             const collectionId = request.body.data.collectionId;
+
+
             const collection = await Collection.findOne({_id: collectionId});
-            let collectionHeaders = ['id', 'name', 'tags'];
+
+            let collectionHeaders = [{
+                headerName: 'id',
+                fieldName: 'id'
+            },
+            {
+                headerName: 'name',
+                fieldName: 'name'
+            },
+            {
+                headerName: 'tags',
+                fieldName: 'tags'
+            }];
             for (let key in collection) {
                 if (key.includes('Field') && collection[key]){
-                    collectionHeaders.push(collection[key])
+                    collectionHeaders.push({
+                        headerName: collection[key],
+                        fieldName: key
+                    })
                 }
             }
-            const arr = collectionHeaders.map((header)=>{
+            collectionHeaders = collectionHeaders.map((header)=>{
                 return {
-                    Header: header,
-                    accessor: header,
+                    Header: header.headerName,
+                    accessor: header.headerName==='id'?'_id':header.fieldName,
+                    fieldType: header.fieldName,
                 }
             })
-            console.log(arr);
-            response.status(201).json(arr);
+
+            const collectionItems = await Item.find({collectionRef: collectionId});
+
+            response.status(201).json({
+                headers: collectionHeaders,
+                items: collectionItems
+            });
         } catch (error) {
             console.log(error);
         }
