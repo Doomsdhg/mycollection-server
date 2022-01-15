@@ -192,7 +192,7 @@ router.post(
                 collectionRef,});
             await item.save();
             const abc = await Collection.findOne({_id: collectionRef});
-            console.log(request.body);
+            console.log(request.body.data);
             const updateData = {
                 items: [...abc.items, item._id]
             }
@@ -221,7 +221,7 @@ router.post(
 )
 
 router.post(
-    '/getcollection',
+    '/getcollectiontable',
     async (request, response) => {
         try {
             
@@ -264,6 +264,79 @@ router.post(
                 headers: collectionHeaders,
                 items: collectionItems
             });
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.post(
+    '/updatecollection',
+    async (request, response) => {
+        try {
+            
+            const {
+                collectionId,
+                name,
+                description,
+                topic
+            } = request.body.data;
+
+            const updateData = {
+                name,
+                description,
+                topic
+            }
+
+
+            const collection = await Collection.findOneAndUpdate({_id: collectionId}, updateData);
+
+
+            console.log(collection)
+
+            response.status(201).json('ok');
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.post(
+    '/deletecollection',
+    async (request, response) => {
+        try {
+            
+            const collectionId = request.body.data.collectionId;
+
+
+            const items = await Item.deleteMany({collectionRef: collectionId});
+            const collection = await Collection.findOneAndDelete({_id: collectionId});
+
+            console.log(collection)
+
+            response.status(201).json('ok!');
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.post(
+    '/getcollectiondata',
+    async (request, response) => {
+        try {
+            
+            const collectionId = request.body.data.collectionId;
+
+
+            const collection = await Collection.findOne({_id: collectionId});
+
+            console.log(collection)
+
+            response.status(201).json(collection);
         } catch (error) {
             console.log(error);
         }
