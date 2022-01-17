@@ -109,35 +109,11 @@ router.post(
     '/uploadcollection',
     async (request, response) => {
         try {
-            const {
-                creator,
-                name,
-                description,
-                topic,
-                imageURL,
-                numberField1,
-                numberField2,
-                numberField3,
-                stringField1,
-                stringField2,
-                stringField3,
-                textField1,
-                textField2,
-                textField3,
-                dateField1,
-                dateField2,
-                dateField3,
-                checkboxField1,
-                checkboxField2,
-                checkboxField3
-            } = request.body.data;
-            console.log(name);
-            console.log(request.body);
-            const collection = new Collection({ creator, name, description, topic, imageURL, numberField1, numberField2, 
-                numberField3, stringField1, stringField2, stringField3, textField1, textField2, textField3, 
-                dateField1, dateField2, dateField3, checkboxField1, checkboxField2, checkboxField3});
-            console.log(collection);
+            console.log(request.body.data);
+            const collection = new Collection(request.body.data);
+            
             await collection.save();
+            console.log(collection);
             response.status(201).json({message: 'Collection is created successfully'});
         } catch (error) {
             response.status(500).json({message: `Something went wrong! Try again + ${error}`})
@@ -257,7 +233,7 @@ router.post(
                     fieldType: header.fieldName,
                 }
             })
-
+            console.log(collectionHeaders);
             const collectionItems = await Item.find({collectionRef: collectionId});
 
             response.status(201).json({
@@ -289,6 +265,7 @@ router.post(
                 topic
             }
 
+            console.log(collectionId);
 
             const collection = await Collection.findOneAndUpdate({_id: collectionId}, updateData);
 
