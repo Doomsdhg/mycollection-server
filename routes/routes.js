@@ -111,7 +111,7 @@ router.post(
         try {
             console.log(request.body.data);
             const collection = new Collection(request.body.data);
-            
+            console.log(request.body.data);
             await collection.save();
             console.log(collection);
             response.status(201).json({message: 'Collection is created successfully'});
@@ -139,14 +139,15 @@ router.post(
                 textField1,
                 textField2,
                 textField3,
-                StringField1,
-                StringField2,
-                StringField3,
+                dateField1,
+                dateField2,
+                dateField3,
                 checkboxField1,
                 checkboxField2,
                 checkboxField3,
                 collectionRef,
             } = request.body.data;
+            console.log(request.body.data);
             const item = new Item({ 
                 name,
                 tags,
@@ -159,9 +160,9 @@ router.post(
                 textField1,
                 textField2,
                 textField3,
-                StringField1,
-                StringField2,
-                StringField3,
+                dateField1,
+                dateField2,
+                dateField3,
                 checkboxField1,
                 checkboxField2,
                 checkboxField3,
@@ -195,6 +196,23 @@ router.post(
         
     }
 )
+
+router.post(
+    '/getitem',
+    async (request, response) => {
+        try {
+            const itemId = request.body.data.itemId;
+            const item = await Item.findOne({_id: itemId});
+            console.log(item);
+            response.status(201).json(item);
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+
 
 router.post(
     '/getcollectiontable',
