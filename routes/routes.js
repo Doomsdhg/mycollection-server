@@ -339,4 +339,33 @@ router.post(
     }
 )
 
+router.post(
+    '/search',
+    async (request, response) => {
+        try {
+            console.log(request.body.data.query);
+
+            const collectionResults = await Collection.find(
+                { $text: {$search: request.body.data.query}},
+                { score: {$meta: "textScore"}}
+            ).sort({ score: {$meta: "textScore"}})
+                console.log(collectionResults);
+
+            const itemResults = await Item.find(
+                { $text: {$search: request.body.data.query}},
+                { score: {$meta: "textScore"}}
+            ).sort({ score: {$meta: "textScore"}})  
+                console.log(itemResults);
+            response.status(201).json(
+                {
+                    collections: [...collectionResults],
+                    items: [...itemResults]
+                });
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
 module.exports = router

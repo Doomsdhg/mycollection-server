@@ -21,4 +21,25 @@ const schema = new Schema({
     collectionRef: {type: Types.ObjectId, ref: 'Collection'}
 })
 
+schema.index({
+    name: "text",
+    tags: "text",
+    numberField1: "text",
+    numberField2: "text",
+    numberField3: "text",
+    stringField1: "text",
+    stringField2: "text",
+    stringField3: "text",
+    textField1: "text",
+    textField2: "text",
+    textField3: "text",
+    dateField1: "text",
+    dateField2: "text",
+    dateField3: "text",
+    checkboxField1: "text",
+    checkboxField2: "text",
+    checkboxField3: "text",
+    collectionRef: "text"
+})
+
 module.exports = model('Item', schema);
