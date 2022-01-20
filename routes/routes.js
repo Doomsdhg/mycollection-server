@@ -3,6 +3,7 @@ const router = Router();
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Item = require('../models/Item');
+const Comment = require('../models/Comment');
 const Collection = require('../models/Collection');
 const {check, validationResult} = require('express-validator');
 const jwt = require('jsonwebtoken');
@@ -23,7 +24,7 @@ router.post(
         check('email', 'email is invalid').isEmail()
     ],
     async (request, response) => {
-
+        console.log(request);
         try {
             
             const errors = validationResult(request);
@@ -33,13 +34,13 @@ router.post(
                     message: arr.join(';')
                 });
             }
-            const {email, password} = request.body;
+            const {email, userName, password} = request.body;
             const candidate = await User.findOne({ email: email});
             if (candidate) {
                 return response.status(400).json({message: 'This email is already registered'})
             }
             const hashedPass = await bcrypt.hash(password, 10);
-            const user = new User({ email, password: hashedPass});
+            const user = new User({ email, userName, password: hashedPass});
             await user.save();
             response.status(201).json({message: 'Account is created successfully'});
 
@@ -126,6 +127,7 @@ router.post(
 router.post(
     '/uploaditem',
     async (request, response) => {
+        console.log(request.body.data)
         try {
             const {
                 name,
@@ -168,10 +170,10 @@ router.post(
                 checkboxField3,
                 collectionRef,});
             await item.save();
-            const abc = await Collection.findOne({_id: collectionRef});
+            const collectionOfItem = await Collection.findOne({_id: collectionRef});
             console.log(request.body.data);
             const updateData = {
-                items: [...abc.items, item._id]
+                items: [...collectionOfItem.items, item._id]
             }
             const collection = await Collection.findOneAndUpdate({_id: collectionRef}, updateData);
             const bcd = await Collection.findOne({_id: collectionRef});
@@ -343,24 +345,98 @@ router.post(
     '/search',
     async (request, response) => {
         try {
-            console.log(request.body.data.query);
+            console.log(request.body.data);
 
-            const collectionResults = await Collection.find(
+            const collections = await Collection.find(
                 { $text: {$search: request.body.data.query}},
                 { score: {$meta: "textScore"}}
             ).sort({ score: {$meta: "textScore"}})
-                console.log(collectionResults);
+
+
+            let collectionResults = [];
+            let itemIds = [];
+
+            collections.map((collection)=>{
+                itemIds.push(collection.items);
+                })
+            
+            console.log('itemIds: ' + itemIds)
+
+            
+            await itemIds.map(async(id)=>{
+                const foundItem = await Item.findOne({_id: id});
+                collectionResults.push(foundItem);
+            })
+
+            
 
             const itemResults = await Item.find(
                 { $text: {$search: request.body.data.query}},
                 { score: {$meta: "textScore"}}
             ).sort({ score: {$meta: "textScore"}})  
-                console.log(itemResults);
-            response.status(201).json(
-                {
-                    collections: [...collectionResults],
-                    items: [...itemResults]
-                });
+
+            
+
+            setTimeout(()=>{
+                console.log('collection results: ' + collectionResults);
+                console.log('item results: ' + itemResults);
+                response.status(201).json({
+                    collections: [...collectionResults], 
+                    items: [...itemResults]});
+            },0)
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.post(
+    '/createcomment',
+    async (request, response) => {
+        try {
+            console.log(request.body.data);
+
+            const {
+                text,
+                userId,
+                itemId
+                } = request.body.data;
+
+            const user = await User.findOne({_id: userId});
+
+            const comment = new Comment({
+                text,
+                userName: user.userName,
+                userId,
+                itemId,
+            });
+            await comment.save();
+
+            const item = await Item.findOne({_id: itemId});
+
+            const updateData = {
+                comments: [...item.comments, comment._id]
+            }
+
+            const updatedItem = await Item.findOneAndUpdate({_id: itemId}, updateData)
+
+            response.status(201).json('comment posted');
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.post(
+    '/getcomments',
+    async (request, response) => {
+        try {
+            const itemId = request.body.data.itemId;
+            const comments = await Comment.find({itemId: request.body.data.itemId});
+
+            response.status(201).json(comments);
         } catch (error) {
             console.log(error);
         }

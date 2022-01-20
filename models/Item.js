@@ -18,7 +18,8 @@ const schema = new Schema({
     checkboxField1: {type: String},
     checkboxField2: {type: String},
     checkboxField3: {type: String},
-    collectionRef: {type: Types.ObjectId, ref: 'Collection'}
+    collectionRef: {type: Types.ObjectId, ref: 'Collection'},
+    comments: [{type: Types.ObjectId, ref: 'Comment'}],
 })
 
 schema.index({
