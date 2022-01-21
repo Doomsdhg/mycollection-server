@@ -49,6 +49,27 @@ router.post(
         }
     })
 
+    router.post(
+    '/deleteitems', 
+    async (request, response) => {
+        console.log(request);
+        try {
+            const itemsToDelete = request.body.data;
+
+            await itemsToDelete.map(async(itemId)=>{
+                await Item.findOneAndDelete({_id: itemId});
+            })
+            
+            setTimeout(()=>{
+                response.status(201).json({message: 'Account is created successfully'});
+            },0)
+            
+
+        } catch(e){
+            response.status(500).json({message: `Error: ${e}`})
+        }
+    })
+
 router.post(
     '/authentication', 
     [
@@ -130,6 +151,7 @@ router.post(
         console.log(request.body.data)
         try {
             const {
+                creator,
                 name,
                 tags,
                 numberField1,
@@ -149,8 +171,9 @@ router.post(
                 checkboxField3,
                 collectionRef,
             } = request.body.data;
-            console.log(request.body.data);
+            
             const item = new Item({ 
+                creator,
                 name,
                 tags,
                 numberField1,
@@ -170,8 +193,9 @@ router.post(
                 checkboxField3,
                 collectionRef,});
             await item.save();
+            console.log('ref collection: ' + collectionRef);
             const collectionOfItem = await Collection.findOne({_id: collectionRef});
-            console.log(request.body.data);
+            console.log('found collection: ' + collectionOfItem);
             const updateData = {
                 items: [...collectionOfItem.items, item._id]
             }
@@ -192,6 +216,24 @@ router.post(
             const userId = request.body.data.userId;
             const userCollections = await Collection.find({creator: userId});
             response.status(201).json(userCollections);
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.post(
+    '/updateitem',
+    async (request, response) => {
+        try {
+            console.log(request);
+            const itemId = request.body.data.itemId;
+            const foundItem = await Item.findOneAndUpdate({_id: itemId},request.body.data.update);
+            console.log(foundItem);
+            const item = await Item.findOne({_id: itemId});
+            console.log(item)
+            response.status(201).json('ok');
         } catch (error) {
             console.log(error);
         }

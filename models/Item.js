@@ -1,6 +1,7 @@
 const {Schema, model, Types} = require('mongoose');
 
 const schema = new Schema({
+    creator: {type: Types.ObjectId, ref: 'User'},
     name: {type: String},
     tags: {type: String},
     numberField1: {type: String},
