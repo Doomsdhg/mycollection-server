@@ -131,9 +131,9 @@ router.post(
     '/uploadcollection',
     async (request, response) => {
         try {
-            console.log(request.body.data);
+
             const collection = new Collection(request.body.data);
-            console.log(request.body.data);
+            console.log('request: ' + request.body.data.imageURL);
             await collection.save();
             console.log(collection);
             response.status(201).json({message: 'Collection is created successfully'});
@@ -191,7 +191,8 @@ router.post(
                 checkboxField1,
                 checkboxField2,
                 checkboxField3,
-                collectionRef,});
+                collectionRef,
+                items: []});
             await item.save();
             console.log('ref collection: ' + collectionRef);
             const collectionOfItem = await Collection.findOne({_id: collectionRef});
@@ -256,7 +257,143 @@ router.post(
     }
 )
 
+router.post(
+    '/getlikes',
+    async (request, response) => {
+        try {
+            console.log(request);
+            const itemId = request.body.data.itemId;
+            const userId = request.body.data.userId;
+            const foundItem = await Item.findOne({_id: itemId});
+            console.log(foundItem);
+            const liked = foundItem.likes.includes(userId)?true:false
+            const likesAmount = foundItem.likes.length;
+            
+            response.status(201).json({
+                liked,
+                likesAmount
+            });
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
 
+router.get(
+    '/gettags',
+    async (request, response) => {
+        try {
+            
+            const items = await Item.find({'tags': { $exists: true, $ne: null }});
+            let tagsArray = [];
+            const tagsCount = [];
+            let tagsObj = {};
+            items.map((item) => {
+                const tags = item.tags.split(' ');
+                
+                tags.map((tag)=>{
+                    const keys = Object.keys(tagsObj);
+                    const tagText = tag.substring(1);
+                    
+                    if (tagsObj[tagText]) {
+                    tagsObj = {
+                        ...tagsObj,
+                        [tagText] : tagsObj[tagText] + 1
+                        }
+                    } else {
+                    tagsObj = {
+                        ...tagsObj,
+                        [tagText] : 1
+                        }
+                    }
+                })
+            })
+            response.status(201).json(tagsObj);
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.get(
+    '/getlastitems',
+    async (request, response) => {
+        try {
+            const items = await Item.find();
+            response.status(201).json(items.splice(-3));
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.get(
+    '/getbiggestcollections',
+    async (request, response) => {
+        try {
+            
+            let collections = await Collection.find();
+            console.log('collections: ' + collections);
+            collections.sort(function(a, b){
+                return b.items.length - a.items.length;
+            })
+            console.log(' sorted collections: ' + collections);
+            response.status(201).json(collections.splice(0, 3));
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.post(
+    '/uploadreaction',
+    async (request, response) => {
+        try {
+            
+            const {
+                itemId,
+                userId,
+                liked,
+            } = request.body.data;
+            const foundItem = await Item.findOne({_id: itemId});
+            console.log('data' + request.body.data.itemId + ' ' + request.body.data.userId);
+            console.log('item: ' + foundItem);
+            let updateData;
+            if (foundItem.likes.length === 0) {
+                updateData = {
+                    likes : [userId]
+                }
+            } else {
+                if (foundItem.likes.includes(userId)) {
+                    
+                    const updateArray = [...foundItem.likes];
+                    const index = updateArray.indexOf(userId);
+                    updateArray.splice(index, 1);
+                    updateData = {
+                        likes : updateArray
+                    }
+                } else {
+                    updateData = {
+                        likes : [...foundItem.items, userId]
+                    }
+                }
+            }
+            console.log('updateData: ' + updateData.likes);
+            const updateItem = await Item.findOneAndUpdate({_id: itemId}, updateData);
+            const updatedItem = await Item.findOne({_id: itemId});
+            console.log('item: ' + updateItem)
+            console.log(' updated item: ' + updatedItem)
+            response.status(201).json('ok');
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
 
 router.post(
     '/getcollectiontable',
