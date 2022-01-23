@@ -34,13 +34,13 @@ router.post(
                     message: arr.join(';')
                 });
             }
-            const {email, userName, password} = request.body;
+            const {email, userName, password, admin} = request.body;
             const candidate = await User.findOne({ email: email});
             if (candidate) {
                 return response.status(400).json({message: 'This email is already registered'})
             }
             const hashedPass = await bcrypt.hash(password, 10);
-            const user = new User({ email, userName, password: hashedPass});
+            const user = new User({ email, userName, password: hashedPass, admin});
             await user.save();
             response.status(201).json({message: 'Account is created successfully'});
 
@@ -50,6 +50,27 @@ router.post(
     })
 
     router.post(
+    '/deleteitems', 
+    async (request, response) => {
+        console.log(request);
+        try {
+            const itemsToDelete = request.body.data;
+
+            await itemsToDelete.map(async(itemId)=>{
+                await Item.findOneAndDelete({_id: itemId});
+            })
+            
+            setTimeout(()=>{
+                response.status(201).json({message: 'Account is created successfully'});
+            },0)
+            
+
+        } catch(e){
+            response.status(500).json({message: `Error: ${e}`})
+        }
+    })
+
+router.post(
     '/deleteitems', 
     async (request, response) => {
         console.log(request);
@@ -87,7 +108,10 @@ router.post(
             }
             const {email, password} = request.body;
             const user = await User.findOne({email});
-            console.log(user);
+            console.log('user: ' + user);
+            if (user.blocked) {
+                throw new Error('this account is blocked');
+            }
             if (!user) {
                 console.log('doesnt exist');
                 return response.status(400).json({message: 'Couldnt find user with such email'})
@@ -102,7 +126,8 @@ router.post(
                 config.get('jwtSecret'),
                 {expiresIn: '1h'}
             )
-            response.json({token, userId: user.id, email: user.email})
+            
+            response.json({token, userId: user.id, email: user.email, admin: user.admin, blocked: user.blocked})
         } catch(e){
             console.log(e);
             response.status(500).json({message: `Error: ${e}`})
@@ -216,7 +241,9 @@ router.post(
         try {
             const userId = request.body.data.userId;
             const userCollections = await Collection.find({creator: userId});
-            response.status(201).json(userCollections);
+            const user = await User.findOne({_id: userId});
+            console.log('user: ' + user);
+            response.status(201).json({collections: userCollections, owner: {name: user.userName, id: user._id}});
         } catch (error) {
             console.log(error);
         }
@@ -342,6 +369,31 @@ router.get(
             })
             console.log(' sorted collections: ' + collections);
             response.status(201).json(collections.splice(0, 3));
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.get(
+    '/getuserstable',
+    async (request, response) => {
+        try {
+            
+            let users = await User.find();
+            const usersData = [];
+            users.map((user)=>{
+                usersData.push({
+                    id: user._id,
+                    username: user.userName,
+                    email: user.email,
+                    blocked: user.blocked,
+                    admin: user.admin
+                })
+            })
+
+            response.status(201).json(usersData);
         } catch (error) {
             console.log(error);
         }
@@ -532,29 +584,45 @@ router.post(
             ).sort({ score: {$meta: "textScore"}})
 
 
+            
             let collectionResults = [];
             let itemIds = [];
 
             collections.map((collection)=>{
-                itemIds.push(collection.items);
+                itemIds.concat(collection.items);
                 })
             
             console.log('itemIds: ' + itemIds)
 
+            
             
             await itemIds.map(async(id)=>{
                 const foundItem = await Item.findOne({_id: id});
                 collectionResults.push(foundItem);
             })
 
-            
+            const itemResults = [];
 
-            const itemResults = await Item.find(
+            const items = await Item.find(
                 { $text: {$search: request.body.data.query}},
                 { score: {$meta: "textScore"}}
             ).sort({ score: {$meta: "textScore"}})  
 
-            
+            const comments = await Comment.find(
+                { $text: {$search: request.body.data.query}},
+                { score: {$meta: "textScore"}}
+            ).sort({ score: {$meta: "textScore"}});
+
+            console.log(comments);
+
+            await comments.map(async(comment)=>{
+                const foundItem = await Item.findOne({_id: comment.itemId});
+                console.log('foundItem: ' + foundItem);
+                itemResults.push(foundItem)
+                console.log(' item results: ' + itemResults);
+            })
+
+            console.log(' item results: ' + itemResults);
 
             setTimeout(()=>{
                 console.log('collection results: ' + collectionResults);
@@ -562,7 +630,7 @@ router.post(
                 response.status(201).json({
                     collections: [...collectionResults], 
                     items: [...itemResults]});
-            },0)
+            },100)
         } catch (error) {
             console.log(error);
         }
@@ -616,6 +684,57 @@ router.post(
             const comments = await Comment.find({itemId: request.body.data.itemId});
 
             response.status(201).json(comments);
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.post(
+    '/blockuser',
+    async (request, response) => {
+        try {
+            const userId = request.body.data.userId;
+            const user = await User.findOne({_id: userId});
+            console.log('user : ' + user);
+            const updateUser = await User.findOneAndUpdate({_id: userId},{blocked: !user.blocked});
+            const updatedUser = await User.findOne({_id: userId});
+            console.log('updated user : ' + updatedUser);
+            response.status(201).json('ok');
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.post(
+    '/deleteuser',
+    async (request, response) => {
+        try {
+            const userId = request.body.data.userId;
+            const user = await User.findOneAndDelete({_id: userId});
+
+            response.status(201).json('ok');
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
+router.post(
+    '/promoteuser',
+    async (request, response) => {
+        try {
+            const userId = request.body.data.userId;
+            const user = await User.findOne({_id: userId});
+            console.log('user: ' + user);
+            const updateUser = await User.findOneAndUpdate({_id: userId},{admin: !user.admin});
+            const updatedUser = await User.findOne({_id: userId});
+            console.log('updated user : ' + updatedUser);
+            response.status(201).json('ok');
         } catch (error) {
             console.log(error);
         }

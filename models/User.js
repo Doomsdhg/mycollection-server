@@ -7,7 +7,9 @@ const schema = new Schema({
     collections: [{type: Types.ObjectId, ref: 'Collection'}],
     comments: [{type: Types.ObjectId, ref: 'Comment'}],
     items: [{type: Types.ObjectId, ref: 'Item'}],
-    likes: [{type: Types.ObjectId, ref: 'Item'}]
+    likes: [{type: Types.ObjectId, ref: 'Item'}],
+    admin: {type: Boolean},
+    blocked: {type: Boolean},
 })
 
 module.exports = model('User', schema);
