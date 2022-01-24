@@ -321,7 +321,7 @@ router.get(
                 
                 tags.map((tag)=>{
                     const keys = Object.keys(tagsObj);
-                    const tagText = tag.substring(1);
+                    const tagText = tag;
                     
                     if (tagsObj[tagText]) {
                     tagsObj = {
@@ -601,12 +601,14 @@ router.post(
                 collectionResults.push(foundItem);
             })
 
-            const itemResults = [];
+            
 
             const items = await Item.find(
                 { $text: {$search: request.body.data.query}},
                 { score: {$meta: "textScore"}}
             ).sort({ score: {$meta: "textScore"}})  
+
+            let itemResults = items;
 
             const comments = await Comment.find(
                 { $text: {$search: request.body.data.query}},
