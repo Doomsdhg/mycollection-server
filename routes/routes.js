@@ -109,12 +109,12 @@ router.post(
             const {email, password} = request.body;
             const user = await User.findOne({email});
             console.log('user: ' + user);
-            if (user.blocked) {
-                throw new Error('this account is blocked');
-            }
             if (!user) {
                 console.log('doesnt exist');
                 return response.status(400).json({message: 'Couldnt find user with such email'})
+            }
+            if (user.blocked) {
+                throw new Error('this account is blocked');
             }
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
@@ -175,7 +175,7 @@ router.post(
     async (request, response) => {
         console.log(request.body.data)
         try {
-            const {
+            let {
                 creator,
                 name,
                 tags,
@@ -196,7 +196,19 @@ router.post(
                 checkboxField3,
                 collectionRef,
             } = request.body.data;
+
+            if (checkboxField1 === '') {
+                checkboxField1 = false;
+            }
+            if (checkboxField2 === '') {
+                checkboxField2 = false;
+            }
+            if (checkboxField3 === '') {
+                checkboxField3 = false;
+            }
             
+            console.log(request.body.data)
+
             const item = new Item({ 
                 creator,
                 name,
@@ -219,6 +231,7 @@ router.post(
                 collectionRef,
                 items: []});
             await item.save();
+            console.log('item: ' + item);
             console.log('ref collection: ' + collectionRef);
             const collectionOfItem = await Collection.findOne({_id: collectionRef});
             console.log('found collection: ' + collectionOfItem);
@@ -226,7 +239,6 @@ router.post(
                 items: [...collectionOfItem.items, item._id]
             }
             const collection = await Collection.findOneAndUpdate({_id: collectionRef}, updateData);
-            const bcd = await Collection.findOne({_id: collectionRef});
             response.status(201).json({message: 'Item is added successfully'});
         } catch (error) {
             response.status(500).json({message: `Something went wrong! Try again + ${error}`})
@@ -519,9 +531,6 @@ router.post(
             console.log(collectionId);
 
             const collection = await Collection.findOneAndUpdate({_id: collectionId}, updateData);
-
-
-            console.log(collection)
 
             response.status(201).json('ok');
         } catch (error) {
