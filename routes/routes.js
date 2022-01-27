@@ -173,7 +173,8 @@ router.post(
 router.post(
     '/uploaditem',
     async (request, response) => {
-        console.log(request.body.data)
+        console.log('request.body.data')
+        console.log(request.body.data.items)
         try {
             let {
                 creator,
@@ -195,7 +196,7 @@ router.post(
                 checkboxField2,
                 checkboxField3,
                 collectionRef,
-            } = request.body.data;
+            } = request.body.data.items;
 
             if (checkboxField1 === '') {
                 checkboxField1 = false;
@@ -206,7 +207,7 @@ router.post(
             if (checkboxField3 === '') {
                 checkboxField3 = false;
             }
-            
+            console.log('request.body.data')
             console.log(request.body.data)
 
             const item = new Item({ 
