@@ -52,16 +52,16 @@ router.post(
     router.post(
     '/deleteitems', 
     async (request, response) => {
-        console.log(request);
+        console.log(request.body.data);
         try {
-            const itemsToDelete = request.body.data;
+            const itemsToDelete = request.body.data.itemsToDelete;
 
             await itemsToDelete.map(async(itemId)=>{
                 await Item.findOneAndDelete({_id: itemId});
             })
             
             setTimeout(()=>{
-                response.status(201).json({message: 'Account is created successfully'});
+                response.status(201).json({message: 'Item is deleted successfully'});
             },0)
             
 
@@ -98,6 +98,7 @@ router.post(
         check('password', 'Enter password').exists()
     ],
     async (request, response) => {
+        console.log(request.body)
         try {
             const errors = validationResult(request);
             if (!errors.isEmpty()) {
@@ -138,7 +139,7 @@ router.post(
     '/uploadimage',
     async (request, response) => {
         try {
-            const fileString = request.body.data;
+            const fileString = request.body.data.img;
             const uploadedResponse = await cloudinary.uploader.upload(fileString, {
                 uploadPreset: 'dev_setups'
             })
@@ -156,9 +157,10 @@ router.post(
     '/uploadcollection',
     async (request, response) => {
         try {
-
-            const collection = new Collection(request.body.data);
-            console.log('request: ' + request.body.data.imageURL);
+            console.log('request.body.data: ')
+            console.log(request.body.data)
+            const collection = new Collection(request.body.data.updateData);
+            console.log('request: ' + request.body.data.updateData.imageURL);
             await collection.save();
             console.log(collection);
             response.status(201).json({message: 'Collection is created successfully'});
@@ -269,8 +271,8 @@ router.post(
     async (request, response) => {
         try {
             console.log(request);
-            const itemId = request.body.data.itemId;
-            const foundItem = await Item.findOneAndUpdate({_id: itemId},request.body.data.update);
+            const itemId = request.body.data.updateData.itemId;
+            const foundItem = await Item.findOneAndUpdate({_id: itemId},request.body.data.updateData.update);
             console.log(foundItem);
             const item = await Item.findOne({_id: itemId});
             console.log(item)
@@ -302,8 +304,8 @@ router.post(
     async (request, response) => {
         try {
             console.log(request);
-            const itemId = request.body.data.itemId;
-            const userId = request.body.data.userId;
+            const itemId = request.body.data.requiredData.itemId;
+            const userId = request.body.data.requiredData.userId;
             const foundItem = await Item.findOne({_id: itemId});
             console.log(foundItem);
             const liked = foundItem.likes.includes(userId)?true:false
@@ -423,9 +425,9 @@ router.post(
                 itemId,
                 userId,
                 liked,
-            } = request.body.data;
+            } = request.body.data.reaction;
             const foundItem = await Item.findOne({_id: itemId});
-            console.log('data' + request.body.data.itemId + ' ' + request.body.data.userId);
+            console.log('data' + request.body.data.reaction.itemId + ' ' + request.body.data.reaction.userId);
             console.log('item: ' + foundItem);
             let updateData;
             if (foundItem.likes.length === 0) {
@@ -464,7 +466,8 @@ router.post(
     '/getcollectiontable',
     async (request, response) => {
         try {
-            
+            console.log('req body data: ')
+            console.log(request.body.data)
             const collectionId = request.body.data.collectionId;
 
 
@@ -521,7 +524,7 @@ router.post(
                 name,
                 description,
                 topic
-            } = request.body.data;
+            } = request.body.data.update;
 
             const updateData = {
                 name,
@@ -654,13 +657,13 @@ router.post(
     '/createcomment',
     async (request, response) => {
         try {
-            console.log(request.body.data);
+            console.log(request.body.data.comment);
 
             const {
                 text,
                 userId,
                 itemId
-                } = request.body.data;
+                } = request.body.data.comment;
 
             const user = await User.findOne({_id: userId});
 
