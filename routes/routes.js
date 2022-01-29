@@ -156,9 +156,9 @@ router.post(
             })
             console.log(uploadedResponse);
             response.json({msg: "success", url: uploadedResponse.url})
-        } catch (error) {
-            console.log(error);
-            response.status(500).json({msg: "something went wrong"})
+        } catch (e) {
+            console.log(e);
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -175,9 +175,9 @@ router.post(
             await collection.save();
             console.log(collection);
             response.status(201).json({message: 'Collection is created successfully'});
-        } catch (error) {
-            response.status(500).json({message: `Something went wrong! Try again + ${error}`})
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
+            console.log(e);
         }
         
     }
@@ -254,8 +254,8 @@ router.post(
             }
             const collection = await Collection.findOneAndUpdate({_id: collectionRef}, updateData);
             response.status(201).json({message: 'Item is added successfully'});
-        } catch (error) {
-            response.status(500).json({message: `Something went wrong! Try again + ${error}`})
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -270,8 +270,8 @@ router.post(
             const user = await User.findOne({_id: userId});
             console.log('user: ' + user);
             response.status(201).json({collections: userCollections, owner: {name: user.userName, id: user._id}});
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -288,8 +288,8 @@ router.post(
             const item = await Item.findOne({_id: itemId});
             console.log(item)
             response.status(201).json('ok');
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -303,8 +303,8 @@ router.post(
             const item = await Item.findOne({_id: itemId});
             console.log(item);
             response.status(201).json(item);
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -326,8 +326,8 @@ router.post(
                 liked,
                 likesAmount
             });
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -363,8 +363,8 @@ router.get(
                 })
             })
             response.status(201).json(tagsObj);
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -376,8 +376,8 @@ router.get(
         try {
             const items = await Item.find();
             response.status(201).json(items.splice(-3));
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -395,8 +395,8 @@ router.get(
             })
             console.log(' sorted collections: ' + collections);
             response.status(201).json(collections.splice(0, 3));
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -420,8 +420,8 @@ router.get(
             })
 
             response.status(201).json(usersData);
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -466,8 +466,8 @@ router.post(
             console.log('item: ' + updateItem)
             console.log(' updated item: ' + updatedItem)
             response.status(201).json('ok');
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -518,8 +518,8 @@ router.post(
                 headers: collectionHeaders,
                 items: collectionItems
             });
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -548,8 +548,8 @@ router.post(
             const collection = await Collection.findOneAndUpdate({_id: collectionId}, updateData);
 
             response.status(201).json('ok');
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -569,8 +569,8 @@ router.post(
             console.log(collection)
 
             response.status(201).json('ok!');
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -589,8 +589,8 @@ router.post(
             console.log(collection)
 
             response.status(201).json(collection);
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -660,8 +660,8 @@ router.post(
                     collections: [...collectionResults], 
                     items: [...itemResults]});
             },100)
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -698,8 +698,8 @@ router.post(
             const updatedItem = await Item.findOneAndUpdate({_id: itemId}, updateData)
 
             response.status(201).json('comment posted');
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -713,8 +713,8 @@ router.post(
             const comments = await Comment.find({itemId: request.body.data.itemId});
 
             response.status(201).json(comments);
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -731,8 +731,8 @@ router.post(
             const updatedUser = await User.findOne({_id: userId});
             console.log('updated user : ' + updatedUser);
             response.status(201).json('ok');
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -746,8 +746,8 @@ router.post(
             const user = await User.findOneAndDelete({_id: userId});
 
             response.status(201).json('ok');
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -764,8 +764,8 @@ router.post(
             const updatedUser = await User.findOne({_id: userId});
             console.log('updated user : ' + updatedUser);
             response.status(201).json('ok');
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
@@ -785,8 +785,8 @@ router.post(
                 nothingChanged = false;
             }
             response.status(201).json(nothingChanged);
-        } catch (error) {
-            console.log(error);
+        } catch (e) {
+            response.status(500).json({message: `Error: ${e}`})
         }
         
     }
