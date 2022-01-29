@@ -54,17 +54,28 @@ router.post(
     async (request, response) => {
         console.log(request.body.data);
         try {
-            const itemsToDelete = request.body.data.itemsToDelete;
-
+            const itemsToDelete = request.body.data.itemsData.itemsToDelete;
+            const collectionRef = request.body.data.itemsData.collectionRef;
+            let deletedItems = [];
             await itemsToDelete.map(async(itemId)=>{
                 await Item.findOneAndDelete({_id: itemId});
             })
-            
-            setTimeout(()=>{
-                response.status(201).json({message: 'Item is deleted successfully'});
-            },0)
-            
 
+            const collection = await Collection.findOne({_id: collectionRef});
+
+            const updateData = await collection.items.filter((item)=>{
+                if(itemsToDelete.includes(String(item))) {
+                    return false
+                } else {
+                    return true
+                }
+            })
+
+            await Collection.findOneAndUpdate({_id: collectionRef}, {items: updateData})
+                
+            setTimeout( ()=>{
+                response.status(201).json({message: 'Item(s) is(are) deleted successfully'});
+            },0)
         } catch(e){
             response.status(500).json({message: `Error: ${e}`})
         }
@@ -589,10 +600,11 @@ router.post(
     '/search',
     async (request, response) => {
         try {
-            console.log(request.body.data);
+            const {query} = request.body.data;
+            console.log(query);
 
             const collections = await Collection.find(
-                { $text: {$search: request.body.data.query}},
+                { $text: {$search: query}},
                 { score: {$meta: "textScore"}}
             ).sort({ score: {$meta: "textScore"}})
 
@@ -604,27 +616,28 @@ router.post(
             collections.map((collection)=>{
                 itemIds.concat(collection.items);
                 })
-            
             console.log('itemIds: ' + itemIds)
 
             
             
             await itemIds.map(async(id)=>{
                 const foundItem = await Item.findOne({_id: id});
-                collectionResults.push(foundItem);
+                if (foundItem) {
+                    collectionResults.push(foundItem);
+                }
             })
 
             
 
             const items = await Item.find(
-                { $text: {$search: request.body.data.query}},
+                { $text: {$search: query}},
                 { score: {$meta: "textScore"}}
             ).sort({ score: {$meta: "textScore"}})  
 
             let itemResults = items;
 
             const comments = await Comment.find(
-                { $text: {$search: request.body.data.query}},
+                { $text: {$search: query}},
                 { score: {$meta: "textScore"}}
             ).sort({ score: {$meta: "textScore"}});
 
@@ -633,8 +646,9 @@ router.post(
             await comments.map(async(comment)=>{
                 const foundItem = await Item.findOne({_id: comment.itemId});
                 console.log('foundItem: ' + foundItem);
-                itemResults.push(foundItem)
-                console.log(' item results: ' + itemResults);
+                if (foundItem) {
+                    itemResults.push(foundItem)
+                }
             })
 
             console.log(' item results: ' + itemResults);
@@ -756,5 +770,27 @@ router.post(
         
     }
 )
+
+router.post(
+    '/checkuserdata',
+    async (request, response) => {
+        try {
+            const userId = request.body.data.userData.userId;
+            const userData = request.body.data.userData;
+            const user = await User.findOne({_id: userId});
+            console.log('user: ' + user);
+            console.log('userData: ' + userData);
+            let nothingChanged = true;
+            if (userData.blocked !== user.blocked || userData.admin !== user.admin || !user) {
+                nothingChanged = false;
+            }
+            response.status(201).json(nothingChanged);
+        } catch (error) {
+            console.log(error);
+        }
+        
+    }
+)
+
 
 module.exports = router
