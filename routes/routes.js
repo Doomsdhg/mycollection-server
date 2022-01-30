@@ -601,21 +601,25 @@ router.post(
     async (request, response) => {
         try {
             const {query} = request.body.data;
-            console.log(query);
+            console.log('query: ' + query);
 
             const collections = await Collection.find(
                 { $text: {$search: query}},
                 { score: {$meta: "textScore"}}
             ).sort({ score: {$meta: "textScore"}})
 
-
+            console.log('collections: ' + collections)
             
             let collectionResults = [];
             let itemIds = [];
 
-            collections.map((collection)=>{
-                itemIds.concat(collection.items);
-                })
+            itemIds = collections.reduce((prev, current)=>{
+                console.log('prev')
+                console.log(prev)
+                console.log('current')
+                console.log(current)
+                return prev.concat(current.items)
+                }, [])
             console.log('itemIds: ' + itemIds)
 
             
@@ -627,7 +631,7 @@ router.post(
                 }
             })
 
-            
+            console.log('collectionResults: ' + collectionResults)
 
             const items = await Item.find(
                 { $text: {$search: query}},
@@ -659,7 +663,7 @@ router.post(
                 response.status(201).json({
                     collections: [...collectionResults], 
                     items: [...itemResults]});
-            },100)
+            },200)
         } catch (e) {
             response.status(500).json({message: `Error: ${e}`})
         }
