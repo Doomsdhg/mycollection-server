@@ -249,6 +249,7 @@ router.post(
     '/getitem',
     async (request, response) => {
         try {
+            console.log(request.body.data)
             const itemId = request.body.data.itemId;
             const item = await Item.findOne({_id: itemId});
             response.status(201).json(item);
@@ -406,8 +407,14 @@ router.post(
     '/getcollectiontable',
     async (request, response) => {
         try {
-            const collectionId = request.body.data.collectionId;
-            const collection = await Collection.findOne({_id: collectionId});
+            console.log(request.body.data)
+            const item = await Item.findOne({_id: request.body.data.itemId});
+            let collection;
+            if (item && item.collectionRef) {
+                collection = await Collection.findOne({_id: item.collectionRef})
+            } else {
+                collection = await Collection.findOne({_id: request.body.data.collectionId})
+            }
             let collectionHeaders = [{
                 headerName: 'id',
                 fieldName: 'id'
@@ -435,12 +442,12 @@ router.post(
                     fieldType: header.fieldName,
                 }
             })
-            const collectionItems = await Item.find({collectionRef: collectionId}); //find all items of this collection
+            const collectionItems = await Item.find({collectionRef: collection._id}); //find all items of this collection
 
             response.status(201).json({
                 headers: collectionHeaders,
                 items: collectionItems,
-                collectionId: collectionId
+                collectionId: collection._id
             });
         } catch (e) {
             response.status(500).json({message: `Error: ${e}`})
