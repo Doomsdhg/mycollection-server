@@ -51,8 +51,11 @@ router.post(
     '/deleteitems', 
     async (request, response) => {
         try {
+            console.log(request.body.data.itemsToDelete)
             const itemsToDelete = request.body.data.itemsData.itemsToDelete;
-            const collectionRef = request.body.data.itemsData.collectionRef;
+            const item = await Item.findOne({_id: itemsToDelete[0]});
+            console.log(item)
+            const collectionRef = item.collectionRef;
             let deletedItems = [];
             await itemsToDelete.map(async(itemId)=>{
                 await Item.findOneAndDelete({_id: itemId});
@@ -79,30 +82,10 @@ router.post(
     })
 
 router.post(
-    '/deleteitems', 
-    async (request, response) => {
-        try {
-            const itemsToDelete = request.body.data;
-
-            await itemsToDelete.map(async(itemId)=>{
-                await Item.findOneAndDelete({_id: itemId});
-            })
-            
-            setTimeout(()=>{
-                response.status(201).json({message: 'Account is created successfully'});
-            },0)
-            
-
-        } catch(e){
-            response.status(500).json({message: `Error: ${e}`})
-        }
-    })
-
-router.post(
     '/authentication', 
     [
-        check('email', 'Email is invalid').normalizeEmail().isEmail(),
-        check('password', 'Enter password').exists()
+        check('email', 'Error: Email is invalid').normalizeEmail().isEmail(),
+        check('password', 'Error: Enter password').exists()
     ],
     async (request, response) => {
         try {
@@ -116,14 +99,14 @@ router.post(
             const {email, password} = request.body;
             const user = await User.findOne({email});
             if (!user) {
-                return response.status(400).json({message: 'Couldnt find user with such email'})
+                return response.status(400).json({message: 'Error: Couldnt find user with such email.'})
             }
             if (user.blocked) {
-                throw new Error('this account is blocked');
+                throw new Error('Error: this account is blocked');
             }
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
-                return response.status(400).json({ message: 'password is incorrect'})
+                return response.status(400).json({ message: 'Error: password is incorrect'})
             }
             const token = jwt.sign(
                 {userId: user.id},
@@ -275,8 +258,12 @@ router.post(
     '/getitem',
     async (request, response) => {
         try {
+            console.log('request.body.data.itemId: ')
+            console.log(request.body.data.itemId)
             const itemId = request.body.data.itemId;
             const item = await Item.findOne({_id: itemId});
+            console.log('item: ')
+            console.log(item)
             response.status(201).json(item);
         } catch (e) {
             response.status(500).json({message: `Error: ${e}`})
@@ -401,7 +388,8 @@ router.post(
     '/uploadreaction',
     async (request, response) => {
         try {
-            
+            console.log('request.body.data')
+            console.log(request.body.data)
             const {
                 itemId,
                 userId,
@@ -424,7 +412,7 @@ router.post(
                     }
                 } else {
                     updateData = {
-                        likes : [...foundItem.items, userId]
+                        likes : [...foundItem.likes, userId]
                     }
                 }
             }
@@ -442,7 +430,9 @@ router.post(
     '/getcollectiontable',
     async (request, response) => {
         try {
-            const collectionId = request.body.data.collectionId;
+            const itemId = request.body.data.itemId;
+            const item = await Item.findOne({_id: itemId});
+            const collectionId = request.body.data.collectionId?request.body.data.collectionId:item.collectionRef;
             const collection = await Collection.findOne({_id: collectionId});
             let collectionHeaders = [{
                 headerName: 'id',
@@ -475,7 +465,8 @@ router.post(
 
             response.status(201).json({
                 headers: collectionHeaders,
-                items: collectionItems
+                items: collectionItems,
+                collectionId: collectionId
             });
         } catch (e) {
             response.status(500).json({message: `Error: ${e}`})
@@ -666,8 +657,9 @@ router.post(
     async (request, response) => {
         try {
             const userId = request.body.data.userId;
+            const collections = await Collection.deleteMany({creator: userId});
+            const items = await Item.deleteMany({creator: userId});
             const user = await User.findOneAndDelete({_id: userId});
-
             response.status(201).json('ok');
         } catch (e) {
             response.status(500).json({message: `Error: ${e}`})
