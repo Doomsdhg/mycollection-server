@@ -406,9 +406,7 @@ router.post(
     '/getcollectiontable',
     async (request, response) => {
         try {
-            const itemId = request.body.data.itemId;
-            const item = await Item.findOne({_id: itemId});
-            const collectionId = item.collectionRef;
+            const collectionId = request.body.data.collectionId;
             const collection = await Collection.findOne({_id: collectionId});
             let collectionHeaders = [{
                 headerName: 'id',
